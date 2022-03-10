@@ -33,7 +33,7 @@ test.group('Group', async (group) => {
     assert.equal(body.group.schedule, groupPayload.schedule)
     assert.equal(body.group.location, groupPayload.location)
     assert.equal(body.group.chronic, groupPayload.chronic)
-    assert.equal(body.group.master_id, groupPayload.masterId)
+    assert.equal(body.group.masterId, groupPayload.masterId)
 
     assert.exists(body.group.players, 'Players undefined')
     assert.equal(body.group.players.length, 1)

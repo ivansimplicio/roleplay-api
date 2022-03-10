@@ -22,7 +22,7 @@ export default class Group extends BaseModel {
   @column()
   public chronic: string
 
-  @column({ columnName: 'master_id' })
+  @column({ columnName: 'master_id', serializeAs: 'masterId' })
   public masterId: number
 
   @column.dateTime({ autoCreate: true })
