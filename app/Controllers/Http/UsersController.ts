@@ -14,10 +14,11 @@ export default class UsersController {
 
   public async show({}: HttpContextContract) {}
 
-  public async update({ request, response }: HttpContextContract) {
+  public async update({ request, response, bouncer }: HttpContextContract) {
     const payload = await request.validate(UpdateUser)
     const id = request.param('id')
     const user = await User.findOrFail(id)
+    await bouncer.authorize('updateUser', user)
     user.merge(payload)
     await user.save()
     return response.ok({ user })

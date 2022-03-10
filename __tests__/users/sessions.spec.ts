@@ -64,7 +64,7 @@ test.group('Session', async (group) => {
       .expect(200)
   })
 
-  test.only('it should revoke token when user signs out', async (assert) => {
+  test('it should revoke token when user signs out', async (assert) => {
     const password = 'senha123'
     const { email } = await UserFactory.merge({ password }).create()
     const { body } = await supertest(BASE_URL)
@@ -89,7 +89,7 @@ test.group('Session', async (group) => {
     await Database.beginGlobalTransaction()
   })
 
-  group.after(async () => {
+  group.afterEach(async () => {
     await Database.rollbackGlobalTransaction()
   })
 })
