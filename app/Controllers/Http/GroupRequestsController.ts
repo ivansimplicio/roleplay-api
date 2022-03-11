@@ -4,6 +4,23 @@ import Group from 'App/Models/Group'
 import GroupRequest from 'App/Models/GroupRequest'
 
 export default class GroupRequestsController {
+  public async index({ request, response }: HttpContextContract) {
+    const { masterId } = request.qs()
+    const groupRequests = await GroupRequest.query()
+      .select('id', 'groupId', 'userId', 'status')
+      .preload('group', (query) => {
+        query.select('name', 'masterId')
+      })
+      .preload('user', (query) => {
+        query.select('username')
+      })
+      .whereHas('group', (query) => {
+        query.where('masterId', +masterId)
+      })
+      .where('status', 'PENDING')
+    return response.ok({ groupRequests })
+  }
+
   public async store({ auth, request, response }: HttpContextContract) {
     const groupId = request.param('groupId') as number
     const userId = auth.user!.id
