@@ -26,17 +26,6 @@ test.group('Group Request', async (group) => {
     assert.equal(body.groupRequest.status, 'PENDING')
   })
 
-  group.before(async () => {
-    const password = 'senha123'
-    const newUser = await UserFactory.merge({ password }).create()
-    const { body } = await supertest(BASE_URL)
-      .post('/sessions')
-      .send({ email: newUser.email, password })
-      .expect(201)
-    token = body.token.token
-    user = newUser
-  })
-
   test('it should return 409 when group request already exists', async (assert) => {
     const master = await UserFactory.create()
     const group = await GroupFactory.merge({ masterId: master.id }).create()
@@ -79,7 +68,7 @@ test.group('Group Request', async (group) => {
     assert.equal(body.status, 422)
   })
 
-  test.only('it should list group requests by master', async (assert) => {
+  test('it should list group requests by master', async (assert) => {
     const master = await UserFactory.create()
     const group = await GroupFactory.merge({ masterId: master.id }).create()
     const response = await supertest(BASE_URL)
@@ -92,7 +81,6 @@ test.group('Group Request', async (group) => {
       .get(`/groups/${group.id}/requests?masterId=${master.id}`)
       .expect(200)
 
-    console.log(body.groupRequests[0])
     assert.exists(body.groupRequests, 'GroupRequests undefined')
     assert.equal(body.groupRequests.length, 1)
     assert.equal(body.groupRequests[0].id, groupRequest.id)
@@ -102,6 +90,43 @@ test.group('Group Request', async (group) => {
     assert.equal(body.groupRequests[0].group.name, group.name)
     assert.equal(body.groupRequests[0].user.username, user.username)
     assert.equal(body.groupRequests[0].group.masterId, master.id)
+  })
+
+  test('it should return an empty list when master has no group requests', async (assert) => {
+    const master = await UserFactory.create()
+    const group = await GroupFactory.merge({ masterId: master.id }).create()
+    await supertest(BASE_URL)
+      .post(`/groups/${group.id}/requests`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({})
+
+    const { body } = await supertest(BASE_URL)
+      .get(`/groups/${group.id}/requests?masterId=${user.id}`)
+      .expect(200)
+
+    assert.exists(body.groupRequests, 'GroupRequests undefined')
+    assert.equal(body.groupRequests.length, 0)
+  })
+
+  test('it should return 422 when master is not provided', async (assert) => {
+    const master = await UserFactory.create()
+    const group = await GroupFactory.merge({ masterId: master.id }).create()
+
+    const { body } = await supertest(BASE_URL).get(`/groups/${group.id}/requests`).expect(422)
+
+    assert.equal(body.code, 'BAD_REQUEST')
+    assert.equal(body.status, 422)
+  })
+
+  group.before(async () => {
+    const password = 'senha123'
+    const newUser = await UserFactory.merge({ password }).create()
+    const { body } = await supertest(BASE_URL)
+      .post('/sessions')
+      .send({ email: newUser.email, password })
+      .expect(201)
+    token = body.token.token
+    user = newUser
   })
 
   group.after(async () => {
